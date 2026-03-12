@@ -14,15 +14,10 @@ type Tab = 'chat' | 'models' | 'benchmarks' | 'settings';
 export default function Layout() {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('galaxy_onboarded'));
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const hasOnboarded = localStorage.getItem('galaxy_onboarded');
-    if (!hasOnboarded) {
-      setShowOnboarding(true);
-    }
-
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
@@ -130,6 +125,9 @@ export default function Layout() {
           })}
         </div>
       </nav>
+      <footer className="py-4 text-center text-[10px] text-white/20 uppercase tracking-widest">
+        © 2026 Created By Corey Dean | EDC Media | All Rights Reserved.
+      </footer>
     </div>
   );
 }

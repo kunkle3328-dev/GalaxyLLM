@@ -51,16 +51,21 @@ class InferenceService {
           ]
         } : undefined;
 
-        const engine = await webllm.CreateMLCEngine(modelId, {
-          initProgressCallback: (report) => {
-            this.notify({
-              status: report.text,
-              progress: report.progress,
-              modelId
-            });
-          },
-          appConfig
-        });
+        const engine = await Promise.race([
+          webllm.CreateMLCEngine(modelId, {
+            initProgressCallback: (report) => {
+              this.notify({
+                status: report.text,
+                progress: report.progress,
+                modelId
+              });
+            },
+            appConfig
+          }),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error("Model initialization timed out")), 60000)
+          )
+        ]);
 
         this.engine = engine;
         this.initPromise = null;
