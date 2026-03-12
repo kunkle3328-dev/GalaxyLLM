@@ -1,0 +1,5 @@
+{
+  "name": "Galaxy LLM Studio",
+  "description": "Offline-first on-device LLM chatbot and model manager optimized for Galaxy S25.",
+  "requestFramePermissions": []
+}

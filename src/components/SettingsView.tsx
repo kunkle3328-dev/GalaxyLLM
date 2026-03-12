@@ -1,0 +1,152 @@
+import React, { useState } from 'react';
+import { Shield, Cpu, Cloud, Info, Github, SlidersHorizontal, Zap } from 'lucide-react';
+
+export default function SettingsView() {
+  const [temperature, setTemperature] = useState(0.7);
+  const [topP, setTopP] = useState(0.9);
+  const [maxTokens, setMaxTokens] = useState(2048);
+
+  return (
+    <div className="h-full flex flex-col px-6 py-8 space-y-8 overflow-y-auto scrollbar-hide">
+      <header className="space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+        <p className="text-sm text-white/40">Configure your local environment and privacy.</p>
+      </header>
+
+      <div className="space-y-6">
+        <section className="space-y-4">
+          <h3 className="text-[10px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
+            <SlidersHorizontal className="w-3 h-3" /> Model Parameters
+          </h3>
+          <div className="glass-panel rounded-3xl p-6 space-y-6 shadow-xl">
+            {/* Temperature Slider */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-white/90">Temperature</label>
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md">{temperature.toFixed(2)}</span>
+              </div>
+              <p className="text-[10px] text-white/40 leading-relaxed">Controls randomness. Lower values are more focused, higher values are more creative.</p>
+              <input 
+                type="range" 
+                min="0" max="2" step="0.05" 
+                value={temperature} 
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-black/50 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              />
+            </div>
+
+            <div className="h-px w-full bg-white/5" />
+
+            {/* Top P Slider */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-white/90">Top P</label>
+                <span className="text-xs font-mono text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">{topP.toFixed(2)}</span>
+              </div>
+              <p className="text-[10px] text-white/40 leading-relaxed">Nucleus sampling. Limits token selection to a cumulative probability threshold.</p>
+              <input 
+                type="range" 
+                min="0" max="1" step="0.05" 
+                value={topP} 
+                onChange={(e) => setTopP(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-black/50 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+            </div>
+
+            <div className="h-px w-full bg-white/5" />
+
+            {/* Max Tokens Slider */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-white/90">Max Output Tokens</label>
+                <span className="text-xs font-mono text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-md">{maxTokens}</span>
+              </div>
+              <p className="text-[10px] text-white/40 leading-relaxed">The maximum number of tokens to generate in the response.</p>
+              <input 
+                type="range" 
+                min="256" max="8192" step="256" 
+                value={maxTokens} 
+                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                className="w-full h-1.5 bg-black/50 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-[10px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
+            <Zap className="w-3 h-3" /> Inference Mode
+          </h3>
+          <div className="space-y-3">
+            <button className="w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left shadow-lg border-emerald-500/30 bg-emerald-500/5 transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-emerald-500/20 rounded-xl">
+                  <Cpu className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">On-Device (Default)</div>
+                  <div className="text-[10px] opacity-60 uppercase tracking-wider mt-0.5">WebGPU Accelerated</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+              </div>
+            </button>
+            <button className="w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left opacity-50 hover:opacity-80 transition-all">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-white/5 rounded-xl">
+                  <Cloud className="w-5 h-5 text-white/60" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Cloud Fallback</div>
+                  <div className="text-[10px] uppercase tracking-wider mt-0.5">Gemini API Integration</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full border-2 border-white/20" />
+            </button>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-[10px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
+            <Shield className="w-3 h-3" /> Privacy & Security
+          </h3>
+          <div className="glass-panel rounded-3xl divide-y divide-white/5 shadow-xl overflow-hidden">
+            <div className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-blue-500/20 rounded-xl">
+                  <Shield className="w-5 h-5 text-blue-400" />
+                </div>
+                <span className="text-sm font-semibold text-white/90">Local-Only Storage</span>
+              </div>
+              <div className="w-12 h-6 bg-emerald-500 rounded-full relative shadow-[0_0_10px_rgba(16,185,129,0.3)] cursor-pointer">
+                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+              </div>
+            </div>
+            <div className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-white/5 rounded-xl">
+                  <Info className="w-5 h-5 text-white/40" />
+                </div>
+                <span className="text-sm font-semibold text-white/90">Anonymous Benchmarking</span>
+              </div>
+              <div className="w-12 h-6 bg-black/40 border border-white/10 rounded-full relative cursor-pointer">
+                <div className="absolute left-1 top-1 w-4 h-4 bg-white/40 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="pt-4 flex flex-col items-center gap-4 text-white/20">
+          <div className="flex items-center gap-4">
+            <Github className="w-5 h-5" />
+            <span className="text-xs font-mono uppercase tracking-widest">v1.0.0-alpha</span>
+          </div>
+          <p className="text-[10px] text-center max-w-[200px] leading-relaxed">
+            Built for Galaxy S25. No data leaves this device.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
