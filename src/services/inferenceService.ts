@@ -80,9 +80,16 @@ class InferenceService {
   async generate(messages: webllm.ChatCompletionMessageParam[], onToken?: (token: string) => void) {
     if (!this.engine) throw new Error("Engine not initialized");
 
+    const temperature = parseFloat(localStorage.getItem('nova_temperature') || '0.7');
+    const top_p = parseFloat(localStorage.getItem('nova_topP') || '0.9');
+    const max_tokens = parseInt(localStorage.getItem('nova_maxTokens') || '2048', 10);
+
     const chunks = await this.engine.chat.completions.create({
       messages,
       stream: true,
+      temperature,
+      top_p,
+      max_tokens,
     });
 
     let fullText = "";

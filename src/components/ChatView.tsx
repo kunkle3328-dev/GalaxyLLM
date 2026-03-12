@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import type { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
 
@@ -11,7 +12,41 @@ import { db, type ChatMessage } from '../services/db';
 import { cn } from '@/src/lib/utils';
 import { useInference } from '../hooks/useInference';
 
-const SYSTEM_PROMPT = `You are Nova, a highly advanced, knowledgeable, and professional AI assistant. Provide detailed, accurate, and well-structured responses. Use markdown formatting, headers, lists, and code blocks where appropriate.`;
+const SYSTEM_PROMPT = `You are Nova, a highly advanced, knowledgeable, and professional AI assistant. You must provide detailed, accurate, and well-structured responses.
+
+CRITICAL FORMATTING RULES:
+1. Always use proper Markdown formatting.
+2. Use headers (##, ###) to organize your thoughts.
+3. Use paragraphs and line breaks to separate ideas.
+4. Use inline code (\`code\`) for syntax and variables.
+5. Use code blocks (\`\`\`language) for code snippets.
+6. Be highly accurate and detailed in your responses.`;
+
+const MessageActions = ({ content, timestamp }: { content: string, timestamp: number }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-3 mt-1.5 ml-1">
+      <span className="text-[10px] uppercase tracking-tighter opacity-30">
+        {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </span>
+      <button 
+        onClick={handleCopy}
+        className="text-[10px] uppercase tracking-tighter opacity-30 hover:opacity-100 transition-opacity flex items-center gap-1"
+        title="Copy message"
+      >
+        {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+        {copied ? <span className="text-emerald-400">Copied</span> : <span>Copy</span>}
+      </button>
+    </div>
+  );
+};
 
 const PreBlock = ({ children, ...props }: any) => {
   const [copied, setCopied] = useState(false);
@@ -301,7 +336,7 @@ export default function ChatView() {
                 <div className="whitespace-pre-wrap">{msg.content}</div>
               ) : (
                 <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]} 
+                  remarkPlugins={[remarkGfm, remarkBreaks]} 
                   rehypePlugins={[rehypeHighlight]}
                   components={markdownComponents}
                 >
@@ -309,9 +344,13 @@ export default function ChatView() {
                 </ReactMarkdown>
               )}
             </div>
-            <span className="text-[10px] uppercase tracking-tighter opacity-30 mt-1">
-              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            {msg.role === 'assistant' ? (
+              <MessageActions content={msg.content} timestamp={msg.timestamp} />
+            ) : (
+              <span className="text-[10px] uppercase tracking-tighter opacity-30 mt-1 mr-1">
+                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
           </motion.div>
         ))}
 
@@ -324,7 +363,7 @@ export default function ChatView() {
             <div className="px-5 py-4 rounded-3xl text-sm leading-relaxed glass-panel text-white/90 rounded-tl-sm prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-a:text-emerald-400 hover:prose-a:text-emerald-300 prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-headings:text-white prose-strong:text-white prose-code:before:content-none prose-code:after:content-none shadow-lg">
               {streamingContent ? (
                 <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]} 
+                  remarkPlugins={[remarkGfm, remarkBreaks]} 
                   rehypePlugins={[rehypeHighlight]}
                   components={markdownComponents}
                 >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Database, BarChart3, Settings, WifiOff } from 'lucide-react';
+import { MessageSquare, Database, BarChart3, Settings, WifiOff, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import ChatView from './ChatView';
@@ -7,6 +7,7 @@ import ModelManager from './ModelManager';
 import BenchmarksView from './BenchmarksView';
 import SettingsView from './SettingsView';
 import Onboarding from './Onboarding';
+import SplashScreen from './SplashScreen';
 
 type Tab = 'chat' | 'models' | 'benchmarks' | 'settings';
 
@@ -14,6 +15,7 @@ export default function Layout() {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const hasOnboarded = localStorage.getItem('galaxy_onboarded');
@@ -36,6 +38,10 @@ export default function Layout() {
     setShowOnboarding(false);
   };
 
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
   const tabs = [
     { id: 'chat', label: 'Chat', icon: MessageSquare },
     { id: 'models', label: 'Models', icon: Database },
@@ -47,13 +53,27 @@ export default function Layout() {
     <div className="flex flex-col h-screen bg-[#050505] text-white font-sans overflow-hidden relative">
       <div className="atmosphere" />
       
-      {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
+      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+      {!showSplash && showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       
       {/* Header */}
       <header className="px-6 py-4 border-b border-white/5 flex items-center justify-between glass-panel z-10">
         <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-          <h1 className="text-lg font-semibold tracking-tight uppercase text-white/90">Galaxy LLM Studio</h1>
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-blue-600/20 border border-white/10 shadow-[0_0_15px_rgba(16,185,129,0.15)] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-blue-600/10 backdrop-blur-md" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 border border-emerald-500/30 border-t-emerald-400/80 rounded-xl"
+            />
+            <Sparkles className="w-5 h-5 text-emerald-400 relative z-10" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+              GALAXY <span className="text-emerald-400">LLM</span>
+            </h1>
+            <p className="text-[10px] text-white/40 uppercase tracking-widest font-medium -mt-1">Local Intelligence</p>
+          </div>
         </div>
         {isOffline && (
           <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.15)]">

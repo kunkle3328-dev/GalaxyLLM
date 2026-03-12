@@ -19,10 +19,22 @@ export async function checkWebGPUSupport() {
     }
 
     const hasF16 = adapter.features.has("shader-f16");
+    
+    let adapterInfo = {};
+    try {
+      if (adapter.info) {
+        adapterInfo = adapter.info;
+      } else if (typeof adapter.requestAdapterInfo === 'function') {
+        adapterInfo = await adapter.requestAdapterInfo();
+      }
+    } catch (infoError) {
+      console.warn("Could not get adapter info", infoError);
+    }
+
     return {
       supported: true,
       hasF16,
-      adapterInfo: await adapter.requestAdapterInfo()
+      adapterInfo
     };
   } catch (e) {
     return {

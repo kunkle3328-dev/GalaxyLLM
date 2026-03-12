@@ -15,6 +15,7 @@ export interface ModelRecord {
   contextWindow?: number;
   description?: string;
   modelUrl?: string;
+  isRecommended?: boolean;
   createdAt: number;
   updatedAt: number;
 }

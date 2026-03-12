@@ -1,10 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Cpu, Cloud, Info, Github, SlidersHorizontal, Zap } from 'lucide-react';
 
 export default function SettingsView() {
-  const [temperature, setTemperature] = useState(0.7);
-  const [topP, setTopP] = useState(0.9);
-  const [maxTokens, setMaxTokens] = useState(2048);
+  const [temperature, setTemperature] = useState(() => parseFloat(localStorage.getItem('nova_temperature') || '0.7'));
+  const [topP, setTopP] = useState(() => parseFloat(localStorage.getItem('nova_topP') || '0.9'));
+  const [maxTokens, setMaxTokens] = useState(() => parseInt(localStorage.getItem('nova_maxTokens') || '2048', 10));
+  const [inferenceMode, setInferenceMode] = useState(() => localStorage.getItem('nova_inferenceMode') || 'local');
+  const [localOnly, setLocalOnly] = useState(() => localStorage.getItem('nova_localOnly') !== 'false');
+  const [anonBenchmarking, setAnonBenchmarking] = useState(() => localStorage.getItem('nova_anonBench') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('nova_temperature', temperature.toString());
+  }, [temperature]);
+
+  useEffect(() => {
+    localStorage.setItem('nova_topP', topP.toString());
+  }, [topP]);
+
+  useEffect(() => {
+    localStorage.setItem('nova_maxTokens', maxTokens.toString());
+  }, [maxTokens]);
+
+  useEffect(() => {
+    localStorage.setItem('nova_inferenceMode', inferenceMode);
+  }, [inferenceMode]);
+
+  useEffect(() => {
+    localStorage.setItem('nova_localOnly', localOnly.toString());
+  }, [localOnly]);
+
+  useEffect(() => {
+    localStorage.setItem('nova_anonBench', anonBenchmarking.toString());
+  }, [anonBenchmarking]);
 
   return (
     <div className="h-full flex flex-col px-6 py-8 space-y-8 overflow-y-auto scrollbar-hide">
@@ -78,31 +105,47 @@ export default function SettingsView() {
             <Zap className="w-3 h-3" /> Inference Mode
           </h3>
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left shadow-lg border-emerald-500/30 bg-emerald-500/5 transition-all hover:scale-[1.02]">
+            <button 
+              onClick={() => setInferenceMode('local')}
+              className={`w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left shadow-lg transition-all hover:scale-[1.02] ${inferenceMode === 'local' ? 'border-emerald-500/30 bg-emerald-500/5' : 'opacity-50 hover:opacity-80'}`}
+            >
               <div className="flex items-center gap-4">
-                <div className="p-2 bg-emerald-500/20 rounded-xl">
-                  <Cpu className="w-5 h-5 text-emerald-400" />
+                <div className={`p-2 rounded-xl ${inferenceMode === 'local' ? 'bg-emerald-500/20' : 'bg-white/5'}`}>
+                  <Cpu className={`w-5 h-5 ${inferenceMode === 'local' ? 'text-emerald-400' : 'text-white/60'}`} />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">On-Device (Default)</div>
                   <div className="text-[10px] opacity-60 uppercase tracking-wider mt-0.5">WebGPU Accelerated</div>
                 </div>
               </div>
-              <div className="w-5 h-5 rounded-full border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)]">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-              </div>
+              {inferenceMode === 'local' ? (
+                <div className="w-5 h-5 rounded-full border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                </div>
+              ) : (
+                <div className="w-5 h-5 rounded-full border-2 border-white/20" />
+              )}
             </button>
-            <button className="w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left opacity-50 hover:opacity-80 transition-all">
+            <button 
+              onClick={() => setInferenceMode('cloud')}
+              className={`w-full flex items-center justify-between p-5 glass-panel rounded-3xl text-left transition-all ${inferenceMode === 'cloud' ? 'border-blue-500/30 bg-blue-500/5 shadow-lg hover:scale-[1.02]' : 'opacity-50 hover:opacity-80'}`}
+            >
               <div className="flex items-center gap-4">
-                <div className="p-2 bg-white/5 rounded-xl">
-                  <Cloud className="w-5 h-5 text-white/60" />
+                <div className={`p-2 rounded-xl ${inferenceMode === 'cloud' ? 'bg-blue-500/20' : 'bg-white/5'}`}>
+                  <Cloud className={`w-5 h-5 ${inferenceMode === 'cloud' ? 'text-blue-400' : 'text-white/60'}`} />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">Cloud Fallback</div>
                   <div className="text-[10px] uppercase tracking-wider mt-0.5">Gemini API Integration</div>
                 </div>
               </div>
-              <div className="w-5 h-5 rounded-full border-2 border-white/20" />
+              {inferenceMode === 'cloud' ? (
+                <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+                </div>
+              ) : (
+                <div className="w-5 h-5 rounded-full border-2 border-white/20" />
+              )}
             </button>
           </div>
         </section>
@@ -112,26 +155,32 @@ export default function SettingsView() {
             <Shield className="w-3 h-3" /> Privacy & Security
           </h3>
           <div className="glass-panel rounded-3xl divide-y divide-white/5 shadow-xl overflow-hidden">
-            <div className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors">
+            <div 
+              className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+              onClick={() => setLocalOnly(!localOnly)}
+            >
               <div className="flex items-center gap-4">
-                <div className="p-2 bg-blue-500/20 rounded-xl">
-                  <Shield className="w-5 h-5 text-blue-400" />
+                <div className={`p-2 rounded-xl ${localOnly ? 'bg-blue-500/20' : 'bg-white/5'}`}>
+                  <Shield className={`w-5 h-5 ${localOnly ? 'text-blue-400' : 'text-white/40'}`} />
                 </div>
                 <span className="text-sm font-semibold text-white/90">Local-Only Storage</span>
               </div>
-              <div className="w-12 h-6 bg-emerald-500 rounded-full relative shadow-[0_0_10px_rgba(16,185,129,0.3)] cursor-pointer">
-                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+              <div className={`w-12 h-6 rounded-full relative transition-colors ${localOnly ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-black/40 border border-white/10'}`}>
+                <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${localOnly ? 'right-1 bg-white shadow-sm' : 'left-1 bg-white/40'}`} />
               </div>
             </div>
-            <div className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors">
+            <div 
+              className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+              onClick={() => setAnonBenchmarking(!anonBenchmarking)}
+            >
               <div className="flex items-center gap-4">
-                <div className="p-2 bg-white/5 rounded-xl">
-                  <Info className="w-5 h-5 text-white/40" />
+                <div className={`p-2 rounded-xl ${anonBenchmarking ? 'bg-amber-500/20' : 'bg-white/5'}`}>
+                  <Info className={`w-5 h-5 ${anonBenchmarking ? 'text-amber-400' : 'text-white/40'}`} />
                 </div>
                 <span className="text-sm font-semibold text-white/90">Anonymous Benchmarking</span>
               </div>
-              <div className="w-12 h-6 bg-black/40 border border-white/10 rounded-full relative cursor-pointer">
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white/40 rounded-full" />
+              <div className={`w-12 h-6 rounded-full relative transition-colors ${anonBenchmarking ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-black/40 border border-white/10'}`}>
+                <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${anonBenchmarking ? 'right-1 bg-white shadow-sm' : 'left-1 bg-white/40'}`} />
               </div>
             </div>
           </div>

@@ -17,7 +17,8 @@ const PRESET_MODELS: Partial<ModelRecord>[] = [
     estimatedVramBytes: 2500000000,
     architecture: 'Transformer (Phi-3)',
     contextWindow: 4096,
-    description: 'A lightweight, high-performance model from Microsoft optimized for mobile and edge devices.'
+    description: 'A lightweight, high-performance model from Microsoft optimized for mobile and edge devices.',
+    isRecommended: true
   },
   {
     id: 'Llama-3.1-8B-Instruct-q4f32_1-MLC',
@@ -28,7 +29,8 @@ const PRESET_MODELS: Partial<ModelRecord>[] = [
     estimatedVramBytes: 5200000000,
     architecture: 'Llama-3.1',
     contextWindow: 8192,
-    description: 'Metas latest open-weights model, offering state-of-the-art performance for its size.'
+    description: 'Metas latest open-weights model, offering state-of-the-art performance for its size.',
+    isRecommended: true
   },
   {
     id: 'gemma-2-2b-it-q4f32_1-MLC',
@@ -388,7 +390,14 @@ export default function ModelManager() {
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <h3 className="font-bold text-xl text-emerald-400 tracking-tight">{model.name}</h3>
+                  <div className="flex items-center gap-3">
+                    <h3 className="font-bold text-xl text-emerald-400 tracking-tight">{model.name}</h3>
+                    {(model as any).isRecommended && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-500/30">
+                        Recommended
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-white/60 leading-relaxed max-w-md">
                     {model.description}
                   </p>
