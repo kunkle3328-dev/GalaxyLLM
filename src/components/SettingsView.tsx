@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Cpu, Cloud, Info, Github, SlidersHorizontal, Zap } from 'lucide-react';
+import { Shield, Cpu, Cloud, Info, Github, SlidersHorizontal, Zap, Trash2 } from 'lucide-react';
+import { db } from '../services/db';
 
 export default function SettingsView() {
   const [temperature, setTemperature] = useState(() => parseFloat(localStorage.getItem('nova_temperature') || '0.7'));
@@ -8,6 +9,7 @@ export default function SettingsView() {
   const [inferenceMode, setInferenceMode] = useState(() => localStorage.getItem('nova_inferenceMode') || 'local');
   const [localOnly, setLocalOnly] = useState(() => localStorage.getItem('nova_localOnly') !== 'false');
   const [anonBenchmarking, setAnonBenchmarking] = useState(() => localStorage.getItem('nova_anonBench') === 'true');
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('nova_temperature', temperature.toString());
@@ -33,13 +35,18 @@ export default function SettingsView() {
     localStorage.setItem('nova_anonBench', anonBenchmarking.toString());
   }, [anonBenchmarking]);
 
+  const handlePurge = async () => {
+    localStorage.clear();
+    await db.delete();
+    window.location.reload();
+  };
+
   return (
     <div className="h-full flex flex-col px-6 py-8 space-y-8 overflow-y-auto scrollbar-hide">
       <header className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
         <p className="text-sm text-white/40">Configure your local environment and privacy.</p>
       </header>
-
       <div className="space-y-6">
         <section className="space-y-4">
           <h3 className="text-[10px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
@@ -91,7 +98,7 @@ export default function SettingsView() {
               <p className="text-[10px] text-white/40 leading-relaxed">The maximum number of tokens to generate in the response.</p>
               <input 
                 type="range" 
-                min="256" max="8192" step="256" 
+                min="256" max="16384" step="256" 
                 value={maxTokens} 
                 onChange={(e) => setMaxTokens(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-black/50 rounded-lg appearance-none cursor-pointer accent-purple-500"
@@ -194,6 +201,29 @@ export default function SettingsView() {
           <p className="text-[10px] text-center max-w-[200px] leading-relaxed">
             Built for Galaxy S25. No data leaves this device.
           </p>
+        </section>
+        
+        <section className="space-y-4">
+          <h3 className="text-[10px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
+            <Trash2 className="w-3 h-3" /> Danger Zone
+          </h3>
+          <div className="glass-panel rounded-3xl p-6 shadow-xl border border-red-500/10">
+            <button 
+              onClick={() => setShowPurgeConfirm(true)}
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-red-500/10 text-red-400 font-bold text-sm hover:bg-red-500/20 transition-all"
+            >
+              <Trash2 className="w-4 h-4" /> Purge All Data & Reset
+            </button>
+            {showPurgeConfirm && (
+              <div className="mt-4 p-4 rounded-2xl bg-black/40 border border-red-500/20 space-y-3">
+                <p className="text-xs text-white/60">Are you sure? This will delete all models, chat history, and settings. This cannot be undone.</p>
+                <div className="flex gap-3">
+                  <button onClick={handlePurge} className="flex-1 py-2 rounded-xl bg-red-500 text-white font-bold text-xs">Yes, Purge Everything</button>
+                  <button onClick={() => setShowPurgeConfirm(false)} className="flex-1 py-2 rounded-xl bg-white/10 text-white font-bold text-xs">Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
         </section>
       </div>
     </div>

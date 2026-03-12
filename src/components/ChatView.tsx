@@ -12,15 +12,15 @@ import { db, type ChatMessage } from '../services/db';
 import { cn } from '@/src/lib/utils';
 import { useInference } from '../hooks/useInference';
 
-const SYSTEM_PROMPT = `You are Nova, a highly advanced, knowledgeable, and professional AI assistant. You must provide detailed, accurate, and well-structured responses.
+const SYSTEM_PROMPT = `You are Nova, a highly advanced, knowledgeable, and professional AI assistant. 
+Your goal is to provide accurate, relevant, and helpful responses to the user's questions.
 
-CRITICAL FORMATTING RULES:
-1. Always use proper Markdown formatting.
-2. Use headers (##, ###) to organize your thoughts.
-3. Use paragraphs and line breaks to separate ideas.
-4. Use inline code (\`code\`) for syntax and variables.
-5. Use code blocks (\`\`\`language) for code snippets.
-6. Be highly accurate and detailed in your responses.`;
+- If the user's question is simple, provide a concise and direct answer.
+- If the user's question is complex, provide a detailed, well-structured, and comprehensive response.
+- Always prioritize accuracy and relevance to the user's current query.
+- If you don't know the answer, admit it and suggest where they might find more information.
+- Use proper Markdown formatting (headers, lists, code blocks) to organize your thoughts.
+- Be professional, polite, and helpful.`;
 
 const MessageActions = ({ content, timestamp }: { content: string, timestamp: number }) => {
   const [copied, setCopied] = useState(false);
@@ -327,10 +327,10 @@ export default function ChatView() {
               </div>
             )}
             <div className={cn(
-              "px-5 py-4 rounded-3xl text-sm leading-relaxed shadow-lg",
+              "px-4 py-3 rounded-2xl text-xs md:text-sm leading-relaxed shadow-lg",
               msg.role === 'user' 
                 ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-tr-sm" 
-                : "glass-panel text-white/90 rounded-tl-sm prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-a:text-emerald-400 hover:prose-a:text-emerald-300 prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-headings:text-white prose-strong:text-white prose-code:before:content-none prose-code:after:content-none"
+                : "glass-panel text-white/90 rounded-tl-sm prose prose-invert prose-xs md:prose-sm max-w-none prose-p:leading-relaxed prose-a:text-emerald-400 hover:prose-a:text-emerald-300 prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-headings:text-white prose-strong:text-white prose-code:before:content-none prose-code:after:content-none"
             )}>
               {msg.role === 'user' ? (
                 <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -360,7 +360,7 @@ export default function ChatView() {
               <Bot className="w-3.5 h-3.5 text-emerald-500" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500/80">Nova</span>
             </div>
-            <div className="px-5 py-4 rounded-3xl text-sm leading-relaxed glass-panel text-white/90 rounded-tl-sm prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-a:text-emerald-400 hover:prose-a:text-emerald-300 prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-headings:text-white prose-strong:text-white prose-code:before:content-none prose-code:after:content-none shadow-lg">
+            <div className="px-4 py-3 rounded-2xl text-xs md:text-sm leading-relaxed glass-panel text-white/90 rounded-tl-sm prose prose-invert prose-xs md:prose-sm max-w-none prose-p:leading-relaxed prose-a:text-emerald-400 hover:prose-a:text-emerald-300 prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-headings:text-white prose-strong:text-white prose-code:before:content-none prose-code:after:content-none shadow-lg">
               {streamingContent ? (
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm, remarkBreaks]} 
@@ -410,7 +410,7 @@ export default function ChatView() {
               }}
               placeholder={readyModels.length === 0 ? "Download a model first..." : "Message Nova..."}
               disabled={readyModels.length === 0 || isInitializing || isGenerating}
-              className="w-full glass-panel rounded-3xl px-6 py-4 text-sm focus:outline-none focus:border-emerald-500/50 transition-all disabled:opacity-50 resize-none min-h-[56px] max-h-32 shadow-xl relative z-10"
+              className="w-full glass-panel rounded-3xl px-4 py-3 text-xs md:text-sm focus:outline-none focus:border-emerald-500/50 transition-all disabled:opacity-50 resize-none min-h-[48px] max-h-32 shadow-xl relative z-10"
               rows={1}
             />
             <button 

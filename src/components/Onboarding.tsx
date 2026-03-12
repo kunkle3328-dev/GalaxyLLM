@@ -116,7 +116,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         {/* Right Side - Content */}
-        <div className="flex-1 flex flex-col p-8 sm:p-12 relative">
+        <div className="flex-1 flex flex-col p-8 sm:p-12 relative overflow-y-auto scrollbar-hide">
           <div className="flex justify-between items-center mb-12">
             <div className="flex gap-2">
               {steps.map((_, i) => (
@@ -185,7 +185,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             </AnimatePresence>
           </div>
 
-          <div className="mt-auto pt-6 border-t border-white/10 flex justify-end">
+          <div className="mt-auto pt-6 border-t border-white/10 flex justify-end relative z-20">
             <button
               onClick={handleNext}
               disabled={isAnimating}

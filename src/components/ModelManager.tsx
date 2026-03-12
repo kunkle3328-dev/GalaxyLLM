@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Download, CheckCircle2, Trash2, AlertCircle, HardDrive, Info, Cpu, Maximize, ShieldAlert, Plus, WifiOff } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Download, CheckCircle2, Trash2, AlertCircle, HardDrive, Info, Cpu, Maximize, ShieldAlert, Plus, WifiOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type ModelRecord } from '../services/db';
 import { formatBytes, cn } from '../lib/utils';
@@ -134,9 +134,20 @@ const PRESET_MODELS: Partial<ModelRecord>[] = [
 ];
 
 export default function ModelManager() {
-  const { init, progress, isInitializing } = useInference();
+  const { init, progress, isInitializing, error } = useInference();
   const [gpuStatus, setGpuStatus] = useState<{ supported: boolean; hasF16: boolean; error?: string } | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set());
+  const [initError, setInitError] = useState<string | null>(null);
+  
+  const toggleExpand = (id: string) => {
+    setExpandedModels(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   
   // Custom model state
   const [customModelId, setCustomModelId] = useState('');
@@ -146,6 +157,10 @@ export default function ModelManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const localModels = useLiveQuery(() => db.models.toArray()) || [];
+
+  useEffect(() => {
+    setInitError(error);
+  }, [error]);
 
   useEffect(() => {
     checkWebGPUSupport().then(setGpuStatus);
@@ -163,6 +178,7 @@ export default function ModelManager() {
   }, []);
 
   const startDownload = async (model: Partial<ModelRecord>) => {
+    setInitError(null);
     try {
       // Real initialization triggers the download/caching in WebLLM
       // This will now continue in the background via the singleton service
@@ -176,6 +192,7 @@ export default function ModelManager() {
       });
     } catch (err) {
       console.error('Download failed:', err);
+      setInitError(err instanceof Error ? err.message : 'Failed to load model');
     }
   };
 
@@ -240,11 +257,11 @@ export default function ModelManager() {
   };
 
   return (
-    <div className="h-full flex flex-col px-6 py-8 space-y-8 overflow-y-auto scrollbar-hide">
-      <header className="space-y-2 flex items-start justify-between">
+    <div className="h-full flex flex-col px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8 overflow-y-auto scrollbar-hide">
+      <header className="space-y-1 md:space-y-2 flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Model Manager</h2>
-          <p className="text-sm text-white/40">Download and manage on-device LLMs. Weights are stored in app-private storage.</p>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">Model Manager</h2>
+          <p className="text-xs md:text-sm text-white/40">Download and manage on-device LLMs.</p>
         </div>
         {isOffline && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
@@ -349,6 +366,24 @@ export default function ModelManager() {
         </div>
       </div>
 
+      {initError && (
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex gap-4 items-center">
+          <AlertCircle className="w-6 h-6 text-red-500 shrink-0" />
+          <div className="space-y-1 flex-1">
+            <p className="text-xs font-semibold text-red-500 uppercase tracking-wider">Initialization Error</p>
+            <p className="text-[11px] text-red-500/70 leading-relaxed">
+              {initError}
+            </p>
+          </div>
+          <button 
+            onClick={() => setInitError(null)}
+            className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/30 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {gpuStatus && !gpuStatus.hasF16 && gpuStatus.supported && (
         <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
           <Info className="w-6 h-6 text-blue-400 shrink-0" />
@@ -380,6 +415,7 @@ export default function ModelManager() {
           const isDownloading = isInitializing && progress?.modelId === model.id;
           const isReady = local?.status === 'ready';
           const currentProgress = isDownloading ? Math.round((progress?.progress || 0) * 100) : 0;
+          const isExpanded = expandedModels.has(model.id!);
 
           return (
             <motion.div
@@ -389,29 +425,22 @@ export default function ModelManager() {
               className="glass-panel rounded-3xl p-6 space-y-5 shadow-xl"
             >
               <div className="flex items-start justify-between">
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-xl text-emerald-400 tracking-tight">{model.name}</h3>
+                    <h3 className="font-bold text-lg md:text-xl text-emerald-400 tracking-tight">{model.name}</h3>
                     {(model as any).isRecommended && (
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-500/30">
                         Recommended
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-white/60 leading-relaxed max-w-md">
-                    {model.description}
-                  </p>
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
-                      <Cpu className="w-3 h-3 text-emerald-500" /> {model.architecture}
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
-                      <Maximize className="w-3 h-3 text-blue-500" /> {model.contextWindow} ctx
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
-                      <HardDrive className="w-3 h-3 text-purple-500" /> {formatBytes(model.sizeBytes || 0)}
-                    </div>
-                  </div>
+                  <button 
+                    onClick={() => toggleExpand(model.id!)}
+                    className="flex items-center gap-1 text-xs text-white/40 hover:text-white transition-colors"
+                  >
+                    {isExpanded ? 'Hide Details' : 'View Details'}
+                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
                 </div>
                 {isReady ? (
                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.15)]">
@@ -432,6 +461,32 @@ export default function ModelManager() {
                   </button>
                 )}
               </div>
+
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <p className="text-xs text-white/60 leading-relaxed max-w-md mb-4">
+                      {model.description}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
+                        <Cpu className="w-3 h-3 text-emerald-500" /> {model.architecture}
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
+                        <Maximize className="w-3 h-3 text-blue-500" /> {model.contextWindow} ctx
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 border border-white/5 rounded-lg text-[10px] uppercase font-bold tracking-wider opacity-80">
+                        <HardDrive className="w-3 h-3 text-purple-500" /> {formatBytes(model.sizeBytes || 0)}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {isDownloading && (
                 <div className="space-y-2">
